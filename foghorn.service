@@ -1,0 +1,10 @@
+[Unit]
+Description=RTL-AIS rebroadcaster
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/local/bin/python3 /home/jwittrock/src/foghorn/foghorn.py
+
+[Install]
+WantedBy=multi-user.target
