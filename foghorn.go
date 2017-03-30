@@ -5,10 +5,13 @@ import (
 	"log"
 	"net"
 	"os/exec"
+	"time"
 
 	"encoding/json"
 
+	datastore "cloud.google.com/go/datastore"
 	ais "github.com/andmarios/aislib"
+	"golang.org/x/net/context"
 )
 
 func readUDPStream(pc net.PacketConn, output chan string) {
@@ -65,7 +68,16 @@ func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionRep
 	}
 }
 
+// Position is a datastore representation of a position report.
+type Position struct {
+	Timestamp      time.Time
+	PositionReport string
+}
+
 func main() {
+	datastoreContext := context.Background()
+	datastoreClient, err := datastore.NewClient(datastoreContext, "foghorn-163114")
+
 	cmd := exec.Command("/home/jwittrock/src/rtl-ais/rtl_ais")
 	if err := cmd.Start(); err != nil {
 		log.Fatal(err)
@@ -89,5 +101,12 @@ func main() {
 		position := <-positions
 		json, _ := json.Marshal(position)
 		log.Printf("Got position: %s\n", string(json))
+		k := datastore.NewIncompleteKey(datastoreContext, "PositionReport", nil)
+		datastorePosition := Position{
+			Timestamp:      time.Now().UTC(),
+			PositionReport: string(json),
+		}
+
+		datastoreClient.Put(datastoreContext, k, datastorePosition)
 	}
 }
