@@ -123,6 +123,7 @@ func positionsHandler(w http.ResponseWriter, r *http.Request) {
 	response := <-responseChan
 
 	json, _ := json.Marshal(response)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Fprintf(w, "%s\n", json)
 }
 
