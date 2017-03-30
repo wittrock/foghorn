@@ -20,7 +20,7 @@ func readUDPStream(pc net.PacketConn, output chan string) {
 			log.Fatal(err)
 		}
 
-		output <- string(buffer[:nBytes-1]) // remove the newline.
+		output <- string(buffer[:nBytes-2]) // remove the newline.
 	}
 }
 
