@@ -4,6 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=idle
+Environment=GOOGLE_APPLICATION_CREDENTIALS=/home/jwittrock/src/go/src/github.com/wittrock/foghorn/foghorn-credentials.json
 ExecStart=/home/jwittrock/src/go/src/github.com/wittrock/foghorn/foghorn
 Restart=always
 RestartSec=3

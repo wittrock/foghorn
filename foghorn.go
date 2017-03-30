@@ -48,8 +48,7 @@ func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionRep
 			case 4:
 				_, _ = ais.DecodeBaseStationReport(message.Payload)
 			case 5:
-				t, _ := ais.DecodeStaticVoyageData(message.Payload)
-				fmt.Println(t)
+				_, _ = ais.DecodeStaticVoyageData(message.Payload)
 			case 8:
 				_, _ = ais.DecodeBinaryBroadcast(message.Payload)
 			case 18:
@@ -58,8 +57,6 @@ func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionRep
 			case 255:
 				done <- true
 			default:
-				fmt.Printf("=== Message Type %2d ===\n", message.Type)
-				fmt.Printf(" Unsupported type \n\n")
 			}
 		case problematic = <-failed:
 			log.Println(problematic)
@@ -107,7 +104,7 @@ func main() {
 		datastorePosition := Position{
 			Timestamp:      time.Now().UTC(),
 			PositionReport: string(json),
-			MMSI:           position.MMSI,
+			MMSI:           int32(position.MMSI),
 			Lat:            position.Lat,
 			Lng:            position.Lon,
 		}
