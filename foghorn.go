@@ -70,7 +70,10 @@ func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionRep
 // Position is a datastore representation of a position report.
 type Position struct {
 	Timestamp      time.Time
-	PositionReport string
+	PositionReport string `datastore:",noindex"`
+	MMSI           uint32
+	Lat            float64
+	Lng            float64
 }
 
 func main() {
@@ -104,6 +107,9 @@ func main() {
 		datastorePosition := Position{
 			Timestamp:      time.Now().UTC(),
 			PositionReport: string(json),
+			MMSI:           position.MMSI,
+			Lat:            position.Lat,
+			Lng:            position.Lon,
 		}
 
 		_, err := datastoreClient.Put(datastoreContext, k, &datastorePosition)
