@@ -26,7 +26,7 @@ func readUDPStream(pc net.PacketConn, output chan string) {
 	}
 }
 
-func decodeAISMessages(aisByteStream chan string, payloads chan ais.PositionReport) { // TODO(wittrock)
+func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionReport) { // TODO(wittrock)
 	receive := make(chan ais.Message, 1024*8)
 	failed := make(chan ais.FailedSentence, 1024*8)
 
@@ -42,19 +42,17 @@ func decodeAISMessages(aisByteStream chan string, payloads chan ais.PositionRepo
 			switch message.Type {
 			case 1, 2, 3:
 				t, _ := ais.DecodeClassAPositionReport(message.Payload)
-				fmt.Println(t)
+				positions <- t.PositionReport
 			case 4:
-				t, _ := ais.DecodeBaseStationReport(message.Payload)
-				fmt.Println(t)
+				_, _ = ais.DecodeBaseStationReport(message.Payload)
 			case 5:
 				t, _ := ais.DecodeStaticVoyageData(message.Payload)
 				fmt.Println(t)
 			case 8:
-				t, _ := ais.DecodeBinaryBroadcast(message.Payload)
-				fmt.Println(t)
+				_, _ = ais.DecodeBinaryBroadcast(message.Payload)
 			case 18:
 				t, _ := ais.DecodeClassBPositionReport(message.Payload)
-				fmt.Println(t)
+				positions <- t.PositionReport
 			case 255:
 				done <- true
 			default:
