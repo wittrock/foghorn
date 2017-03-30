@@ -6,6 +6,8 @@ import (
 	"net"
 	"os/exec"
 
+	"encoding/json"
+
 	ais "github.com/andmarios/aislib"
 )
 
@@ -20,11 +22,11 @@ func readUDPStream(pc net.PacketConn, output chan string) {
 			log.Fatal(err)
 		}
 
-		output <- string(buffer[:nBytes-2]) // remove the newline.
+		output <- string(buffer[:nBytes-2]) // remove the CRLF
 	}
 }
 
-func decodeAISMessages(aisByteStream chan string, payloads chan ais.Message) { // TODO(wittrock)
+func decodeAISMessages(aisByteStream chan string, payloads chan ais.PositionReport) { // TODO(wittrock)
 	receive := make(chan ais.Message, 1024*8)
 	failed := make(chan ais.FailedSentence, 1024*8)
 
@@ -81,10 +83,13 @@ func main() {
 	defer pc.Close()
 
 	incomingAISChannel := make(chan string, 4096)
-	decodedMessages := make(chan ais.Message, 8192)
+	positions := make(chan ais.PositionReport, 4096)
 	go readUDPStream(pc, incomingAISChannel)
-	go decodeAISMessages(incomingAISChannel, decodedMessages)
+	go decodeAISMessages(incomingAISChannel, positions)
 
 	for {
+		position := <-positions
+		json, _ := json.Marshal(position)
+		log.Printf("Got position: %s\n", string(json))
 	}
 }
