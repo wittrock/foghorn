@@ -1,18 +1,26 @@
 package main
 
 import (
-	"github.com/admarios/aislib"
+	"fmt"
+	"log"
+	"net"
+
+	ais "github.com/andmarios/aislib"
 )
 
-func readUDPStream(pc net.PacketConn, output <-chan byte) {
+func readUDPStream(pc net.PacketConn, output chan string) {
 	buffer := make([]byte, 4096)
 	for {
-		nBytes, addr, err := pc.ReadFrom(buffer)
-		output <- buffer[:nBytes]
+		nBytes, _, err := pc.ReadFrom(buffer)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		output <- string(buffer[:nBytes])
 	}
 }
 
-func decodeAISMessages(aisByteStream ->chan byte, aisMessages <-chan ais.Message) {
+func decodeAISMessages(aisByteStream chan string, aisMessages chan ais.Message) {
 	// Implement
 }
 
@@ -24,7 +32,7 @@ func main() {
 
 	defer pc.Close()
 
-	incomingAISChannel := make(chan byte, 4096)
+	incomingAISChannel := make(chan string, 4096)
 	decodedMessages := make(chan ais.Message, 8192)
 	go readUDPStream(pc, incomingAISChannel)
 	go decodeAISMessages(incomingAISChannel, decodedMessages)
