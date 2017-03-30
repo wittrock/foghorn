@@ -71,7 +71,7 @@ func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionRep
 type Position struct {
 	Timestamp      time.Time
 	PositionReport string `datastore:",noindex"`
-	MMSI           uint32
+	MMSI           int32
 	Lat            float64
 	Lng            float64
 }
