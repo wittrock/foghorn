@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -10,9 +11,10 @@ import (
 
 	"encoding/json"
 
-	datastore "cloud.google.com/go/datastore"
+	"cloud.google.com/go/datastore"
 	ais "github.com/andmarios/aislib"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/grpclog"
 )
 
 // Position is a datastore representation of a position report.
@@ -22,6 +24,11 @@ type Position struct {
 	MMSI           int32
 	Lat            float64
 	Lng            float64
+}
+
+type positionRequest struct {
+	mmsi            int32
+	responseChannel chan []Position
 }
 
 var positionMap map[uint32]Position
@@ -76,17 +83,11 @@ func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionRep
 	}
 }
 
-type positionRequest struct {
-	mmsi            int32
-	responseChannel chan []Position
-}
-
 func cachePositions(positionUpdates chan Position, positionRequests chan positionRequest) {
 	positionCache := make(map[int32]Position)
 	for {
 		select {
 		case p := <-positionUpdates:
-			log.Printf("Setting position for mmsi %d\n", p.MMSI)
 			positionCache[p.MMSI] = p
 		case r := <-positionRequests:
 			if r.mmsi != 0 {
@@ -119,7 +120,6 @@ func positionsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	positionRequests <- request
-
 	response := <-responseChan
 
 	json, _ := json.Marshal(response)
@@ -129,6 +129,7 @@ func positionsHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	datastoreContext := context.Background()
+	grpclog.SetLogger(log.New(ioutil.Discard, "", 0))
 	datastoreClient, err := datastore.NewClient(datastoreContext, "foghorn-163114")
 
 	cmd := exec.Command("/home/jwittrock/src/rtl-ais/rtl_ais")
