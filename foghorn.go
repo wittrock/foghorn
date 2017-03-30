@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os/exec"
 	"time"
 
@@ -13,6 +14,17 @@ import (
 	ais "github.com/andmarios/aislib"
 	"golang.org/x/net/context"
 )
+
+// Position is a datastore representation of a position report.
+type Position struct {
+	Timestamp      time.Time
+	PositionReport string `datastore:",noindex"`
+	MMSI           int32
+	Lat            float64
+	Lng            float64
+}
+
+var positionMap map[uint32]Position
 
 func readUDPStream(pc net.PacketConn, output chan string) {
 	buffer := make([]byte, 4096)
@@ -64,13 +76,54 @@ func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionRep
 	}
 }
 
-// Position is a datastore representation of a position report.
-type Position struct {
-	Timestamp      time.Time
-	PositionReport string `datastore:",noindex"`
-	MMSI           int32
-	Lat            float64
-	Lng            float64
+type positionRequest struct {
+	mmsi            int32
+	responseChannel chan []Position
+}
+
+func cachePositions(positionUpdates chan Position, positionRequests chan positionRequest) {
+	positionCache := make(map[int32]Position)
+	for {
+		select {
+		case p := <-positionUpdates:
+			log.Printf("Setting position for mmsi %d\n", p.MMSI)
+			positionCache[p.MMSI] = p
+		case r := <-positionRequests:
+			if r.mmsi != 0 {
+				// Only send back a single value.
+				r.responseChannel <- []Position{positionCache[r.mmsi]}
+				continue
+			}
+
+			// Dump the whole cache.
+			positionIndex := 0
+			response := make([]Position, len(positionCache))
+			for _, pos := range positionCache {
+				response[positionIndex] = pos
+				positionIndex++
+			}
+			r.responseChannel <- response
+		}
+
+	}
+}
+
+var positionRequests chan positionRequest
+
+func positionsHandler(w http.ResponseWriter, r *http.Request) {
+	responseChan := make(chan []Position)
+
+	request := positionRequest{
+		mmsi:            0,
+		responseChannel: responseChan,
+	}
+
+	positionRequests <- request
+
+	response := <-responseChan
+
+	json, _ := json.Marshal(response)
+	fmt.Fprintf(w, "%s\n", json)
 }
 
 func main() {
@@ -93,6 +146,14 @@ func main() {
 
 	incomingAISChannel := make(chan string, 4096)
 	positions := make(chan ais.PositionReport, 4096)
+
+	positionUpdates := make(chan Position, 512)
+	positionRequests = make(chan positionRequest, 512)
+	go cachePositions(positionUpdates, positionRequests)
+
+	http.HandleFunc("/positions", positionsHandler)
+	go http.ListenAndServe(":8000", nil)
+
 	go readUDPStream(pc, incomingAISChannel)
 	go decodeAISMessages(incomingAISChannel, positions)
 
@@ -109,9 +170,14 @@ func main() {
 			Lng:            position.Lon,
 		}
 
-		_, err := datastoreClient.Put(datastoreContext, k, &datastorePosition)
-		if err != nil {
-			log.Printf("Could not write to datastore: %v\n", err)
-		}
+		// Save to cache
+		positionUpdates <- datastorePosition
+
+		// Output to datastore
+		_ = datastoreClient
+		// _, err := datastoreClient.Put(datastoreContext, k, &datastorePosition)
+		// if err != nil {
+		// 	log.Printf("Could not write to datastore: %v\n", err)
+		// }
 	}
 }
