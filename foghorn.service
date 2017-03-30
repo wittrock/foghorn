@@ -5,6 +5,8 @@ After=multi-user.target
 [Service]
 Type=idle
 ExecStart=/home/jwittrock/src/go/src/github.com/wittrock/foghorn/foghorn
+Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
