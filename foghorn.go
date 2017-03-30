@@ -108,6 +108,9 @@ func main() {
 			PositionReport: string(json),
 		}
 
-		datastoreClient.Put(datastoreContext, k, datastorePosition)
+		_, err := datastoreClient.Put(datastoreContext, k, datastorePosition)
+		if err != nil {
+			log.Printf("Could not write to datastore: %v\n", err)
+		}
 	}
 }
