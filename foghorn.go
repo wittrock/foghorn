@@ -84,4 +84,7 @@ func main() {
 	decodedMessages := make(chan ais.Message, 8192)
 	go readUDPStream(pc, incomingAISChannel)
 	go decodeAISMessages(incomingAISChannel, decodedMessages)
+
+	for {
+	}
 }
