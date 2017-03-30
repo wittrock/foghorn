@@ -13,6 +13,7 @@ func readUDPStream(pc net.PacketConn, output chan string) {
 	buffer := make([]byte, 4096)
 	for {
 		nBytes, _, err := pc.ReadFrom(buffer)
+		log.Printf("got message: %s", string(buffer[:nBytes]))
 		if err != nil {
 			log.Fatal(err)
 		}
