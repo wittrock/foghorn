@@ -3,6 +3,8 @@ import socket
 import subprocess
 import sys
 
+import ais.stream
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 server_address = ('localhost', 10110)
@@ -14,6 +16,10 @@ subprocess.Popen(['/home/jwittrock/src/rtl-ais/rtl_ais'], stdout=subprocess.DEVN
 
 print('Continuing...')
 
-while True:
-    data, address = sock.recvfrom(4096)
-    print(data)
+data, address = sock.recvfrom(4096)
+pipe < data
+for msg in ais.stream.decode(pipe):
+    
+print(data)
+
+    
