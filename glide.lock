@@ -1,6 +1,93 @@
 hash: e40ff365967a61b42017e471f9e9981f1af0b618d420dcbed24d5835fa926625
-updated: 2017-03-30T12:38:15.544675384-04:00
+updated: 2017-03-30T16:10:40.719270031-04:00
 imports:
+- name: cloud.google.com/go
+  version: 555608f6976e49e654d81d2473623540d43d0b61
+  subpackages:
+  - datastore
+  - internal/fields
+  - internal/version
+  - internal/atomiccache
+  - compute/metadata
+  - internal
 - name: github.com/andmarios/aislib
   version: b03028c9962af45038c96ad381cb0396ad332365
+- name: github.com/golang/protobuf
+  version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
+  subpackages:
+  - proto
+  - ptypes/timestamp
+  - ptypes/wrappers
+  - ptypes/struct
+  - protoc-gen-go/descriptor
+- name: github.com/googleapis/gax-go
+  version: 9af46dd5a1713e8b5cd71106287eba3cefdde50b
+- name: golang.org/x/net
+  version: ffcf1bedda3b04ebb15a168a59800a73d6dc0f4d
+  subpackages:
+  - context
+  - http2
+  - trace
+  - http2/hpack
+  - idna
+  - lex/httplex
+  - internal/timeseries
+  - context/ctxhttp
+- name: golang.org/x/oauth2
+  version: 7fdf09982454086d5570c7db3e11f360194830ca
+  subpackages:
+  - google
+  - internal
+  - jws
+  - jwt
+- name: golang.org/x/text
+  version: 3aa6d803466d99ea1bdf4af99e6db53299c02bd7
+  subpackages:
+  - secure/bidirule
+  - unicode/norm
+  - transform
+  - unicode/bidi
+- name: google.golang.org/api
+  version: 48e49d1645e228d1c50c3d54fb476b2224477303
+  subpackages:
+  - iterator
+  - option
+  - transport
+  - internal
+  - googleapi/transport
+- name: google.golang.org/appengine
+  version: 56d253d1dd14aa01937e12c73a0971bcfd797ff2
+  subpackages:
+  - socket
+  - urlfetch
+  - internal
+  - internal/socket
+  - internal/urlfetch
+  - internal/app_identity
+  - internal/modules
+  - internal/base
+  - internal/datastore
+  - internal/log
+  - internal/remote_api
+- name: google.golang.org/genproto
+  version: de9f5e90fe9b278809363f08c2072d2f2a429de7
+  subpackages:
+  - googleapis/datastore/v1
+  - googleapis/type/latlng
+  - googleapis/api/annotations
+- name: google.golang.org/grpc
+  version: 7fc29d0caa400efc53212b222356f99efe87d7d5
+  subpackages:
+  - codes
+  - metadata
+  - credentials
+  - credentials/oauth
+  - grpclog
+  - internal
+  - keepalive
+  - naming
+  - peer
+  - stats
+  - tap
+  - transport
 devImports: []

@@ -101,7 +101,8 @@ func main() {
 		position := <-positions
 		json, _ := json.Marshal(position)
 		log.Printf("Got position: %s\n", string(json))
-		k := datastore.NewIncompleteKey(datastoreContext, "PositionReport", nil)
+		k := datastore.IncompleteKey("PositionReport", nil)
+		k.Namespace = "dev"
 		datastorePosition := Position{
 			Timestamp:      time.Now().UTC(),
 			PositionReport: string(json),
