@@ -1,0 +1,6 @@
+hash: e40ff365967a61b42017e471f9e9981f1af0b618d420dcbed24d5835fa926625
+updated: 2017-03-30T12:38:15.544675384-04:00
+imports:
+- name: github.com/andmarios/aislib
+  version: b03028c9962af45038c96ad381cb0396ad332365
+devImports: []

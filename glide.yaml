@@ -1,0 +1,3 @@
+package: github.com/wittrock/foghorn
+import:
+- package: github.com/andmarios/aislib
