@@ -20,7 +20,6 @@ func readUDPStream(pc net.PacketConn, output chan string) {
 	log.Println("Reading from udp stream....")
 	for {
 		nBytes, _, err := pc.ReadFrom(buffer)
-		log.Printf("got message: %s", string(buffer[:nBytes]))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -100,7 +99,6 @@ func main() {
 	for {
 		position := <-positions
 		json, _ := json.Marshal(position)
-		log.Printf("Got position: %s\n", string(json))
 		k := datastore.IncompleteKey("PositionReport", nil)
 		k.Namespace = "dev"
 		datastorePosition := Position{
