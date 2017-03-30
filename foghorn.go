@@ -11,6 +11,8 @@ import (
 
 func readUDPStream(pc net.PacketConn, output chan string) {
 	buffer := make([]byte, 4096)
+
+	log.Println("Reading from udp stream....")
 	for {
 		nBytes, _, err := pc.ReadFrom(buffer)
 		log.Printf("got message: %s", string(buffer[:nBytes]))
@@ -23,13 +25,12 @@ func readUDPStream(pc net.PacketConn, output chan string) {
 }
 
 func decodeAISMessages(aisByteStream chan string, payloads chan ais.Message) { // TODO(wittrock)
-	send := make(chan string, 1024*8)
 	receive := make(chan ais.Message, 1024*8)
 	failed := make(chan ais.FailedSentence, 1024*8)
 
 	done := make(chan bool)
 
-	go ais.Router(send, receive, failed)
+	go ais.Router(aisByteStream, receive, failed)
 
 	var message ais.Message
 	var problematic ais.FailedSentence
@@ -83,9 +84,4 @@ func main() {
 	decodedMessages := make(chan ais.Message, 8192)
 	go readUDPStream(pc, incomingAISChannel)
 	go decodeAISMessages(incomingAISChannel, decodedMessages)
-
-	for {
-		msg := <-decodedMessages
-		fmt.Printf("Message: %v\n", msg)
-	}
 }
