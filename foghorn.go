@@ -85,6 +85,7 @@ func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionRep
 
 func cachePositions(positionUpdates chan Position, positionRequests chan positionRequest) {
 	positionCache := make(map[int32]Position)
+	maintenanceChan := time.NewTicker(time.Duration(20 * time.Second)).C
 	for {
 		select {
 		case p := <-positionUpdates:
@@ -104,8 +105,20 @@ func cachePositions(positionUpdates chan Position, positionRequests chan positio
 				positionIndex++
 			}
 			r.responseChannel <- response
-		}
+		case <-maintenanceChan:
+			// Loop over the cache and delete things older than a minute.
+			toDelete := []int32{}
+			now := time.Now()
+			for mmsi, pos := range positionCache {
+				if now.Sub(pos.Timestamp) > (60 * time.Second) {
+					toDelete = append(toDelete, mmsi)
+				}
+			}
 
+			for _, mmsi := range toDelete {
+				delete(positionCache, mmsi)
+			}
+		}
 	}
 }
 
