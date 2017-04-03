@@ -19,15 +19,12 @@ import (
 
 // Position is a datastore representation of a position report.
 type Position struct {
-	Timestamp      time.Time
-	PositionReport string `datastore:",noindex"`
-	MMSI           int32
-	Lat            float64
-	Lng            float64
+	Timestamp      time.Time          `datastore:"Timestamp"`
+	PositionReport ais.PositionReport `datastore:"PositionReport,flatten"`
 }
 
 type positionRequest struct {
-	mmsi            int32
+	mmsi            uint32
 	responseChannel chan []Position
 }
 
@@ -84,12 +81,12 @@ func decodeAISMessages(aisByteStream chan string, positions chan ais.PositionRep
 }
 
 func cachePositions(positionUpdates chan Position, positionRequests chan positionRequest) {
-	positionCache := make(map[int32]Position)
+	positionCache := make(map[uint32]Position)
 	maintenanceChan := time.NewTicker(time.Duration(20 * time.Second)).C
 	for {
 		select {
 		case p := <-positionUpdates:
-			positionCache[p.MMSI] = p
+			positionCache[p.PositionReport.MMSI] = p
 		case r := <-positionRequests:
 			if r.mmsi != 0 {
 				// Only send back a single value.
@@ -107,10 +104,10 @@ func cachePositions(positionUpdates chan Position, positionRequests chan positio
 			r.responseChannel <- response
 		case <-maintenanceChan:
 			// Loop over the cache and delete things older than a minute.
-			toDelete := []int32{}
+			toDelete := []uint32{}
 			now := time.Now()
 			for mmsi, pos := range positionCache {
-				if now.Sub(pos.Timestamp) > (60 * time.Second) {
+				if now.Sub(pos.Timestamp) > (10 * time.Minute) {
 					toDelete = append(toDelete, mmsi)
 				}
 			}
@@ -174,15 +171,11 @@ func main() {
 
 	for {
 		position := <-positions
-		json, _ := json.Marshal(position)
 		k := datastore.IncompleteKey("PositionReport", nil)
 		k.Namespace = "dev"
 		datastorePosition := Position{
 			Timestamp:      time.Now().UTC(),
-			PositionReport: string(json),
-			MMSI:           int32(position.MMSI),
-			Lat:            position.Lat,
-			Lng:            position.Lon,
+			PositionReport: position,
 		}
 
 		// Save to cache
