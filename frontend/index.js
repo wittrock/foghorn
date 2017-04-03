@@ -36,10 +36,6 @@ function geoJsonFromResponse(response) {
       },
     };
 
-    console.log(position.Timestamp);
-    console.log(Date.parse(position.Timestamp));
-    console.log(utcTime);
-    console.log(feature.properties.age)
     geojson.features.push(feature);
   }
 
